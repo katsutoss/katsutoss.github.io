@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情報</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="hero">
+        <h2>試験情報</h2>
+        <p>パーソナライズされた情報</p>
+        <div>
+            <label>学習段階:</label>
+            <select id="stage">
+                <option value="法規">法規</option>
+                <option value="エスキス">エスキス</option>
+                <option value="過去問">過去問</option>
+            </select>
+            <label>試験日:</label>
+            <input type="date" id="examDate">
+            <button class="action-btn" onclick="updatePrefs()">更新</button>
+        </div>
+        <ul class="info-list">
+            <li><strong>過去問</strong>: <a href="https://www.jaeic.or.jp/shiken/1k/1k-kakomon.html" target="_blank">建築技術普及センター</a></li>
+            <li><strong>法規</strong>: <a href="https://laws.e-gov.go.jp/law/325AC0000000201" target="_blank">e-Gov</a></li>
+            <li><strong>コツ</strong>: <a href="https://www.shikaku.co.jp/course/1k/info/shiken/" target="_blank">資格スクエア</a></li>
+            <li><strong>日建学院</strong>: <a href="https://www.ksknet.co.jp/nikken/index.aspx" target="_blank">受講ページ</a></li>
+            <li><strong>ブログ</strong>: <a href="https://example.com" target="_blank">一級建築士解説ブログ</a></li>
+        </ul>
+        <h3>最新情報</h3>
+        <ul class="info-list" id="auto-list">
+            <li>読み込み中...</li>
+        </ul>
+        <a href="index.html" class="action-btn">ホーム</a>
+    </div>
+    <script>
+        let userPrefs = JSON.parse(localStorage.getItem("userPrefs")) || { stage: "法規", examDate: "" };
+        document.getElementById("stage").value = userPrefs.stage;
+        document.getElementById("examDate").value = userPrefs.examDate;
+        async function fetchInfo() {
+            const daysUntilExam = userPrefs.examDate ? 
+                Math.ceil((new Date(userPrefs.examDate) - new Date()) / (1000 * 60 * 60 * 24)) : 999;
+            const keywords = [userPrefs.stage, "一級建築士"];
+            if (daysUntilExam < 30) keywords.push("過去問");
+            const list = document.getElementById("auto-list");
+            try {
+                const response = await fetch("https://api.rss2json.com/v1/api.json?rss_url=https://www.jaeic.or.jp/shiken/rss.xml");
+                const data = await response.json();
+                const filtered = data.items.filter(item => 
+                    keywords.some(keyword => item.title.toLowerCase().includes(keyword.toLowerCase()))
+                ).slice(0, 3);
+                list.innerHTML = "";
+                filtered.forEach(item => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `<strong>${item.title}</strong>: <a href="${item.link}" target="_blank">${item.description}</a>`;
+                    list.appendChild(li);
+                });
+            } catch (e) {
+                list.innerHTML = "<li>情報取得エラー</li>";
+            }
+        }
+        function updatePrefs() {
+            userPrefs.stage = document.getElementById("stage").value;
+            userPrefs.examDate = document.getElementById("examDate").value;
+            localStorage.setItem("userPrefs", JSON.stringify(userPrefs));
+            fetchInfo();
+        }
+        fetchInfo();
+    </script>
+</body>
+</html>
