@@ -1,0 +1,55 @@
+body { 
+    margin: 0; 
+    font-family: 'Noto Sans JP', Arial, sans-serif; 
+    background: #fff; 
+    text-align: center; 
+}
+.hero { 
+    padding: 40px 20px; 
+    margin: 10px auto; 
+    max-width: 800px; 
+}
+.hero h2 { font-size: 28px; }
+.button-group { 
+    display: flex; 
+    justify-content: center; 
+    gap: 10px; 
+}
+.action-btn { 
+    background: #007bff; 
+    color: white; 
+    padding: 10px 20px; 
+    border-radius: 5px; 
+    text-decoration: none; 
+    cursor: pointer; 
+    transition: background 0.2s; 
+}
+.action-btn:hover { background: #0056b3; }
+.action-btn.highlight { background: #2ecc71; }
+.site-footer { 
+    background: #343a40; 
+    color: white; 
+    padding: 10px; 
+}
+.info-list, .record-list { 
+    list-style: none; 
+    padding: 0; 
+    text-align: left; 
+    max-width: 800px; 
+    margin: 20px auto; 
+}
+.info-list li, .record-list li { margin: 10px 0; }
+.info-list a, .record-list a { color: #007bff; text-decoration: none; }
+.info-list a:hover, .record-list a:hover { text-decoration: underline; }
+input, select { 
+    padding: 5px; 
+    margin: 5px; 
+    border-radius: 5px; 
+    border: 1px solid #ccc; 
+}
+canvas { margin: 10px auto; }
+@media (max-width: 600px) {
+    .hero { padding: 20px 10px; }
+    .hero h2 { font-size: 20px; }
+    .action-btn { padding: 8px 12px; }
+}
