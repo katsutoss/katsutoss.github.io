@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勉強記録</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="hero">
+        <h2>勉強記録</h2>
+        <p>進捗を記録・共有</p>
+        <div>
+            <label>学習時間（時間）:</label>
+            <input type="number" id="hours" min="0" step="0.5">
+            <label>課題:</label>
+            <input type="text" id="task">
+            <button class="action-btn" onclick="saveRecord()">記録</button>
+            <button class="action-btn" onclick="shareOnX()">Xで共有</button>
+        </div>
+        <p id="suggestion"></p>
+        <canvas id="progressChart" height="100"></canvas>
+        <ul class="record-list" id="record-list"></ul>
+        <h3>作図タイマー</h3>
+        <p>時間: <span id="time">5:00:00</span></p>
+        <button class="action-btn" onclick="startTimer()">開始</button>
+        <button class="action-btn" onclick="resetTimer()">リセット</button>
+        <a href="index.html" class="action-btn">ホーム</a>
+    </div>
+    <script>
+        let records = JSON.parse(localStorage.getItem("records")) || [];
+        const shareMessages = ["ナイス勉強！", "順調！", "合格近づく！", "最高の進捗！"];
+        function saveRecord() {
+            const hours = document.getElementById("hours").value;
+            const task = document.getElementById("task").value;
+            if (hours && task) {
+                const record = { date: new Date().toISOString().split("T")[0], hours, task };
+                records.push(record);
+                localStorage.setItem("records", JSON.stringify(records));
+                updateRecords();
+                document.getElementById("hours").value = "";
+                document.getElementById("task").value = "";
+            }
+        }
+        function shareOnX() {
+            const latest = records[records.length - 1];
+            if (latest) {
+                const randomMessage = shareMessages[Math.floor(Math.random() * shareMessages.length)];
+                const text = `今日の勉強：${latest.hours}時間、${latest.task}！${randomMessage} #一級建築士`;
+                window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+            }
+        }
+        function suggestNext() {
+            const totalHours = records.reduce((sum, r) => sum + Number(r.hours), 0);
+            const esquisseTasks = records.filter(r => r.task.toLowerCase().includes("エスキス")).length;
+            if (totalHours < 50) return "初級法規を！<a href='https://laws.e-gov.go.jp'>e-Gov</a>";
+            if (esquisseTasks < 5) return "エスキスを増やそう！<a href='https://www.shikaku.co.jp'>資格スクエア</a>";
+            return "過去問を！<a href='https://www.jaeic.or.jp'>建築技術普及センター</a>";
+        }
+        function updateRecords() {
+            const list = document.getElementById("record-list");
+            list.innerHTML = "";
+            records.slice(-5).reverse().forEach(r => {
+                const li = document.createElement("li");
+                li.textContent = `${r.date}: ${r.hours}時間、${r.task}`;
+                list.appendChild(li);
+            });
+            document.getElementById("suggestion").innerHTML = `次のステップ：${suggestNext()}`;
+            updateChart();
+        }
+        function updateChart() {
+            const ctx = document.getElementById("progressChart").getContext("2d");
+            const dates = records.map(r => r.date).slice(-7);
+            const hours = records.map(r => r.hours).slice(-7);
+            new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: dates,
+                    datasets: [{ label: "学習時間", data: hours, borderColor: "#007bff", fill: false }]
+                },
+                options: { scales: { y: { beginAtZero: true } } }
+            });
+        }
+        let time = 5 * 60 * 60;
+        let timer;
+        function startTimer() {
+            timer = setInterval(() => {
+                time--;
+                let hr = Math.floor(time / 3600);
+                let min = Math.floor((time % 3600) / 60);
+                let sec = time % 60;
+                document.getElementById("time").textContent = 
+                    `${hr}:${min < 10 ? "0" : ""}${min}:${sec < 10 ? "0" : ""}${sec}`;
+                if (time <= 0) clearInterval(timer);
+            }, 1000);
+        }
+        function resetTimer() {
+            clearInterval(timer);
+            time = 5 * 60 * 60;
+            document.getElementById("time").textContent = "5:00:00";
+        }
+        updateRecords();
+    </script>
+</body>
+</html>
